@@ -5,12 +5,13 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"github.com/xmidt-org/wrp-go/v3"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/xmidt-org/wrp-go/v3"
 
 	"github.com/gorilla/websocket"
 	"github.com/xmidt-org/sallust"
@@ -48,7 +49,7 @@ type ClientConfig struct {
 	UseSSL               bool
 	CertificatesPath     string
 	PetasosEnabled       bool
-   	Token                string
+	Token                string
 }
 
 // QueueConfig is used to configure all the queues used to make kratos asynchronous.
@@ -73,7 +74,7 @@ func NewClient(config ClientConfig) (Client, error) {
 		firmwareName: config.FirmwareName,
 		modelName:    config.ModelName,
 		manufacturer: config.Manufacturer,
-                token:        config.Token,
+		token:        config.Token,
 	}
 
 	newConnection, connectionURL, err := createConnection(inHeader, config)
@@ -174,7 +175,30 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 	headers.Add("X-Webpa-Firmware-Name", headerInfo.firmwareName)
 	headers.Add("X-Webpa-Model-Name", headerInfo.modelName)
 	headers.Add("X-Webpa-Manufacturer", headerInfo.manufacturer)
-	headers.Add("Authorization", "Bearer "+headerInfo.token)
+	// headers.Add("Authorization", "Bearer "+headerInfo.token)
+	headers.Add("Authorization", "Basic dXNlcjpwYXNz")
+
+	// Replace protocol
+	modified := strings.Replace(talariaInstance, "http://", "https://", 1)
+
+	// Replace .perf. with .perf.intra.
+	modified = strings.Replace(modified, ".perf.", ".perf.intra.", 1)
+
+	// Replace domain ending from ".rdk." to ".rdk.yo-digital.com"
+	if idx := strings.Index(modified, ".rdk."); idx != -1 {
+		// Find where the domain ends (before path)
+		slashIdx := strings.Index(modified[idx:], "/")
+		if slashIdx == -1 {
+			slashIdx = len(modified)
+		} else {
+			slashIdx += idx
+		}
+		// Construct correct domain
+		modified = modified[:idx+5] + "yo-digital.com" + modified[slashIdx:]
+	}
+
+	// Output the modified URL
+	talariaInstance = modified
 
 	// make sure destUrl's protocol is websocket (ws)
 	wsURL = strings.Replace(talariaInstance, "http", "ws", 1)
@@ -238,8 +262,8 @@ func getTalariaInstance(config ClientConfig, tlsConfig *tls.Config) (string, err
 	}
 
 	if resp.Header.Get("Location") != "" {
-   		 location := strings.TrimPrefix(resp.Header.Get("Location"), "https,")
-   		 return location, nil
+		location := strings.TrimPrefix(resp.Header.Get("Location"), "https,")
+		return location, nil
 	}
 
 	// Read response body
