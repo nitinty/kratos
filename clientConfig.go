@@ -168,7 +168,7 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 		dialer.TLSClientConfig = tlsConfig
 	}
 
-	formattedMac, err := toMacAddress("mac:" + headerInfo.deviceName)
+	formattedMac, err := toMacAddress(headerInfo.deviceName)
 	if err != nil {
 		// handle the error appropriately
 		fmt.Println("Invalid MAC address format:", err)
