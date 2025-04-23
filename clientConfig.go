@@ -168,6 +168,13 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 		dialer.TLSClientConfig = tlsConfig
 	}
 
+	formattedMac, err := toMacAddress("mac:" + headerInfo.deviceName)
+	if err != nil {
+		// handle the error appropriately
+		fmt.Println("Invalid MAC address format:", err)
+		return nil, "", err
+	}
+
 	// make a header and put some data in that (including MAC address)
 	// TODO: find special function for user agent
 	headers := make(http.Header)
@@ -177,6 +184,7 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 	headers.Add("X-Webpa-Manufacturer", headerInfo.manufacturer)
 	// headers.Add("Authorization", "Bearer "+headerInfo.token)
 	headers.Add("Authorization", "Basic dXNlcjpwYXNz")
+	headers.Add("X-DEVICE-CN", formattedMac)
 
 	// Replace protocol
 	modified := strings.Replace(talariaInstance, "http://", "https://", 1)
@@ -262,8 +270,7 @@ func getTalariaInstance(config ClientConfig, tlsConfig *tls.Config) (string, err
 	}
 
 	if resp.Header.Get("Location") != "" {
-		location := strings.TrimPrefix(resp.Header.Get("Location"), "https,")
-		return location, nil
+		return resp.Header.Get("Location"), nil
 	}
 
 	// Read response body
@@ -311,4 +318,22 @@ func GetTLSConfig(macAddress string, certificatesPath string, useSSL bool) *tls.
 		Certificates: []tls.Certificate{cert},
 	}
 
+}
+
+func toMacAddress(input string) (string, error) {
+	const prefix = "mac:"
+	if strings.HasPrefix(input, prefix) {
+		input = input[len(prefix):]
+	}
+
+	if len(input) != 12 {
+		return "", fmt.Errorf("input must be exactly 12 hex characters after prefix")
+	}
+
+	var parts []string
+	for i := 0; i < len(input); i += 2 {
+		parts = append(parts, input[i:i+2])
+	}
+
+	return strings.ToUpper(strings.Join(parts, ":")), nil
 }
