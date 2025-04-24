@@ -1,11 +1,13 @@
 package kratos
 
 import (
+	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"regexp"
 	"strings"
@@ -168,13 +170,6 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 		dialer.TLSClientConfig = tlsConfig
 	}
 
-	formattedMac, err := toMacAddress(headerInfo.deviceName)
-	if err != nil {
-		// handle the error appropriately
-		fmt.Println("Invalid MAC address format:", err)
-		return nil, "", err
-	}
-
 	// make a header and put some data in that (including MAC address)
 	// TODO: find special function for user agent
 	headers := make(http.Header)
@@ -184,7 +179,6 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 	headers.Add("X-Webpa-Manufacturer", headerInfo.manufacturer)
 	// headers.Add("Authorization", "Bearer "+headerInfo.token)
 	headers.Add("Authorization", "Basic dXNlcjpwYXNz")
-	headers.Add("X-DEVICE-CN", formattedMac)
 
 	// Replace protocol
 	modified := strings.Replace(talariaInstance, "http://", "https://", 1)
@@ -256,7 +250,25 @@ func getTalariaInstance(config ClientConfig, tlsConfig *tls.Config) (string, err
 	if err != nil {
 		return "", err
 	}
+
+	formattedMac, err := toMacAddress("mac:" + config.DeviceName)
+	fmt.Println("Formatted Mac to set in request header", formattedMac)
+	if err != nil {
+		// handle the error appropriately
+		fmt.Println("Invalid MAC address format:", err)
+		return nil, "", err
+	}
+
+	ip, err := generateIPFromID("123456789012")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return nil, "", err
+	}
+	fmt.Println("Generated IP:", ip)
+
 	req.Header.Set("X-Webpa-Device-Name", config.DeviceName)
+	req.Header.Set("X-DEVICE-CN", formattedMac)
+	req.Header.Set("X-REAL-IP", ip)
 
 	// Send HTTP request and get response
 	resp, err := client.Do(req)
@@ -336,4 +348,29 @@ func toMacAddress(input string) (string, error) {
 	}
 
 	return strings.ToUpper(strings.Join(parts, ":")), nil
+}
+
+func generateIPFromID(input string) (string, error) {
+	const prefix = "mac:"
+	if strings.HasPrefix(input, prefix) {
+		input = input[len(prefix):]
+	}
+
+	if len(input) != 12 {
+		return "", fmt.Errorf("input must be a 12-digit string")
+	}
+
+	// Hash the input
+	hash := sha256.Sum256([]byte(input))
+
+	// Take first 4 bytes for IP address
+	ipBytes := hash[0:4]
+
+	// Optional: avoid special/reserved IPs like 0.x.x.x or 255.x.x.x
+	if ipBytes[0] == 0 || ipBytes[0] == 255 {
+		ipBytes[0] = 1
+	}
+
+	ip := net.IP(ipBytes)
+	return ip.String(), nil
 }
