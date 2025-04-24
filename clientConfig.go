@@ -251,7 +251,7 @@ func getTalariaInstance(config ClientConfig, tlsConfig *tls.Config) (string, err
 		return "", err
 	}
 
-	formattedMac, err := toMacAddress("mac:" + config.DeviceName)
+	formattedMac, err := toMacAddress(config.DeviceName)
 	fmt.Println("Formatted Mac to set in request header", formattedMac)
 	if err != nil {
 		// handle the error appropriately
@@ -259,7 +259,7 @@ func getTalariaInstance(config ClientConfig, tlsConfig *tls.Config) (string, err
 		//return nil, "", err
 	}
 
-	ip, err := generateIPFromID("123456789012")
+	ip, err := generateIPFromID(config.DeviceName)
 	if err != nil {
 		fmt.Println("Error generating IpAddress:", err)
 		//return nil, "", err
