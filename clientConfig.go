@@ -256,13 +256,13 @@ func getTalariaInstance(config ClientConfig, tlsConfig *tls.Config) (string, err
 	if err != nil {
 		// handle the error appropriately
 		fmt.Println("Invalid MAC address format:", err)
-		return nil, "", err
+		//return nil, "", err
 	}
 
 	ip, err := generateIPFromID("123456789012")
 	if err != nil {
-		fmt.Println("Error:", err)
-		return nil, "", err
+		fmt.Println("Error generating IpAddress:", err)
+		//return nil, "", err
 	}
 	fmt.Println("Generated IP:", ip)
 
