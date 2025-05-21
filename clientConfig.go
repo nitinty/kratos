@@ -181,7 +181,7 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 	headers.Add("Authorization", "Basic dXNlcjpwYXNz")
 
 	// Replace protocol
-	modified := strings.Replace(talariaInstance, "http://", "https://", 1)
+	/*modified := strings.Replace(talariaInstance, "http://", "https://", 1)
 
 	// Replace .perf. with .perf.intra.
 	modified = strings.Replace(modified, ".perf.", ".perf.intra.", 1)
@@ -200,7 +200,7 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 	}
 
 	// Output the modified URL
-	talariaInstance = modified
+	talariaInstance = modified*/
 
 	// make sure destUrl's protocol is websocket (ws)
 	wsURL = strings.Replace(talariaInstance, "http", "ws", 1)
