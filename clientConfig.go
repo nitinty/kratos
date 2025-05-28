@@ -202,6 +202,10 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 	// Output the modified URL
 	talariaInstance = modified*/
 
+	modified := updatedURL(talariaInstance)
+
+	talariaInstance = modified
+
 	// make sure destUrl's protocol is websocket (ws)
 	wsURL = strings.Replace(talariaInstance, "http", "ws", 1)
 
@@ -373,4 +377,15 @@ func generateIPFromID(input string) (string, error) {
 
 	ip := net.IP(ipBytes)
 	return ip.String(), nil
+}
+
+func updatedURL(originalURL string) string {
+	// Replace talaria0 or talaria1
+	updatedURL := strings.ReplaceAll(originalURL, "talaria0", "xmidt-talaria-0")
+	updatedURL = strings.ReplaceAll(updatedURL, "talaria1", "xmidt-talaria-1")
+
+	// Replace domain
+	updatedURL = strings.ReplaceAll(updatedURL, "telekom-dev.perf.rdk.rdkf.io", "hgw-shared-perf.svc.cluster.local:6200")
+
+	return updatedURL
 }
