@@ -177,8 +177,8 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 	headers.Add("X-Webpa-Firmware-Name", headerInfo.firmwareName)
 	headers.Add("X-Webpa-Model-Name", headerInfo.modelName)
 	headers.Add("X-Webpa-Manufacturer", headerInfo.manufacturer)
-	// headers.Add("Authorization", "Bearer "+headerInfo.token)
-	headers.Add("Authorization", "Basic dXNlcjpwYXNz")
+	headers.Add("Authorization", "Bearer "+headerInfo.token)
+	//headers.Add("Authorization", "Basic dXNlcjpwYXNz")
 
 	// Replace protocol
 	/*modified := strings.Replace(talariaInstance, "http://", "https://", 1)
