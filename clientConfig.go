@@ -178,6 +178,7 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 	headers.Add("X-Webpa-Model-Name", headerInfo.modelName)
 	headers.Add("X-Webpa-Manufacturer", headerInfo.manufacturer)
 	headers.Add("Authorization", "Bearer "+headerInfo.token)
+	headers.Add("X-Intermediate-Context", `{"ipAddress":"192.168.1.1","certificateProviderRaw":"C2","certificateExpiryDate":"May 16 23:59:59 2031 GMT"}`)
 	//headers.Add("Authorization", "Basic dXNlcjpwYXNz")
 
 	// Replace protocol
