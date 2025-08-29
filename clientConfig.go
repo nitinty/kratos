@@ -172,13 +172,14 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 
 	// make a header and put some data in that (including MAC address)
 	// TODO: find special function for user agent
+	ip, _ := generateIPFromID(headerInfo.deviceName)
 	headers := make(http.Header)
 	headers.Add("X-Webpa-Device-Name", headerInfo.deviceName)
 	headers.Add("X-Webpa-Firmware-Name", headerInfo.firmwareName)
 	headers.Add("X-Webpa-Model-Name", headerInfo.modelName)
 	headers.Add("X-Webpa-Manufacturer", headerInfo.manufacturer)
 	headers.Add("Authorization", "Bearer "+headerInfo.token)
-	headers.Add("X-Intermediate-Context", `{"ipAddress":"192.168.1.1","certificateProviderRaw":"C2","certificateExpiryDate":"May 16 23:59:59 2031 GMT"}`)
+	headers.Add("X-Intermediate-Context", `{"ipAddress":"`+ip+`","certificateProviderRaw":"C2","certificateExpiryDate":"May 16 23:59:59 2031 GMT"}`)
 	//headers.Add("Authorization", "Basic dXNlcjpwYXNz")
 
 	// Replace protocol
