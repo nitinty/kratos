@@ -202,9 +202,9 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 	// Output the modified URL
 	talariaInstance = modified*/
 
-	/*modified := updatedURL(talariaInstance)
+	modified := updatedURL(talariaInstance)
 
-	talariaInstance = modified*/
+	talariaInstance = modified
 
 	// make sure destUrl's protocol is websocket (ws)
 	wsURL = strings.Replace(talariaInstance, "http", "ws", 1)
