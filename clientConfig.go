@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"regexp"
@@ -178,6 +179,7 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 	headers.Add("X-Webpa-Model-Name", headerInfo.modelName)
 	headers.Add("X-Webpa-Manufacturer", headerInfo.manufacturer)
 	headers.Add("Authorization", "Bearer "+headerInfo.token)
+	headers.Add("X-WebPA-Convey", "eyJody1tb2RlbCI6IkRULUhHVzAxQS1BUkMiLCJody1zZXJpYWwtbnVtYmVyIjoiOTAxMDAwMDAwMDBWNDQ1MTExMTExIiwiaHctbWFudWZhY3R1cmVyIjoiQXJjYWR5YW4iLCJmdy1uYW1lIjoiMDA0LjAxMS4wNzMiLCJib290LXRpbWUiOjE3NTMwODIwNTEsIndlYnBhLXByb3RvY29sIjoiUEFST0RVUy0yLjAtNDkyYTg3OSIsIndlYnBhLWludGVyZmFjZS11c2VkIjoiZXJvdXRlcjAiLCJody1sYXN0LXJlYm9vdC1yZWFzb24iOiJmYWN0b3J5LXJlc2V0Iiwid2VicGEtbGFzdC1yZWNvbm5lY3QtcmVhc29uIjoiU1NMX1NvY2tldF9DbG9zZSIsIndlYnBhLWludGVyZmFjZS1sYWJlbCI6IkZpeGVkIiwid2FuLWlwdjQtYWRkcmVzcyI6IjExLjEyMy4xMjMuMzIxIn0=")
 	//headers.Add("Authorization", "Basic dXNlcjpwYXNz")
 
 	// Replace protocol
@@ -231,9 +233,28 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 }
 
 func getTalariaInstance(config ClientConfig, tlsConfig *tls.Config) (string, error) {
+	const maxRetries = 3
+	var (
+		result string
+		err    error
+	)
 
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		result, err = tryGetTalariaInstance(config, tlsConfig)
+		if err == nil {
+			return result, nil
+		}
+
+		if attempt < maxRetries {
+			log.Printf("Attempt %d/%d failed: %v. Retrying...", attempt, maxRetries, err)
+		}
+	}
+
+	return "", fmt.Errorf("failed to get Talaria instance after %d attempts: %w", maxRetries, err)
+}
+
+func tryGetTalariaInstance(config ClientConfig, tlsConfig *tls.Config) (string, error) {
 	// Create HTTP client with custom transport
-
 	tr := &http.Transport{
 		TLSClientConfig: func() *tls.Config {
 			if config.UseSSL {
@@ -379,7 +400,7 @@ func generateIPFromID(input string) (string, error) {
 	return ip.String(), nil
 }
 
-/*func updatedURL(originalURL string) string {
+func updatedURL(originalURL string) string {
 	// Replace talaria0 or talaria1
 	updatedURL := strings.ReplaceAll(originalURL, "talaria0", "xmidt-talaria-0")
 	updatedURL = strings.ReplaceAll(updatedURL, "talaria1", "xmidt-talaria-1")
@@ -388,21 +409,4 @@ func generateIPFromID(input string) (string, error) {
 	updatedURL = strings.ReplaceAll(updatedURL, "telekom-dev.perf.rdk.rdkf.io", "hgw-shared-perf.svc.cluster.local:6200")
 
 	return updatedURL
-}*/
-
-func updatedURL(originalURL string) string {
-	// Case 1: talaria0 / talaria1
-	reCase1 := regexp.MustCompile(`talaria(\d+)\.telekom-dev\.perf\.rdk\.rdkf\.io`)
-	if reCase1.MatchString(originalURL) {
-		return reCase1.ReplaceAllString(originalURL, "xmidt-talaria-$1.hgw-shared-perf.svc.cluster.local:6200")
-	}
-
-	// Case 2: <n>.talaria.telekom-dev.perf.rdk.rdkf.io
-	reCase2 := regexp.MustCompile(`(\d+)\.talaria\.telekom-dev\.perf\.rdk\.rdkf\.io`)
-	if reCase2.MatchString(originalURL) {
-		return reCase2.ReplaceAllString(originalURL, "xmidt-talaria-$1.xmidt-talaria-headless.hgw-shared-perf.svc.cluster.local:6200")
-	}
-
-	// Return unchanged if no match
-	return originalURL
 }
