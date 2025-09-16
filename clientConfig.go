@@ -400,7 +400,7 @@ func generateIPFromID(input string) (string, error) {
 	return ip.String(), nil
 }
 
-func updatedURL(originalURL string) string {
+/*func updatedURL(originalURL string) string {
 	// Replace talaria0 or talaria1
 	updatedURL := strings.ReplaceAll(originalURL, "talaria0", "xmidt-talaria-0")
 	updatedURL = strings.ReplaceAll(updatedURL, "talaria1", "xmidt-talaria-1")
@@ -409,4 +409,21 @@ func updatedURL(originalURL string) string {
 	updatedURL = strings.ReplaceAll(updatedURL, "telekom-dev.perf.rdk.rdkf.io", "hgw-shared-perf.svc.cluster.local:6200")
 
 	return updatedURL
+}*/
+
+func updatedURL(originalURL string) string {
+	// Case 1: talaria0 / talaria1
+	reCase1 := regexp.MustCompile(`talaria(\d+)\.telekom-dev\.perf\.rdk\.rdkf\.io`)
+	if reCase1.MatchString(originalURL) {
+		return reCase1.ReplaceAllString(originalURL, "xmidt-talaria-$1.hgw-shared-perf.svc.cluster.local:6200")
+	}
+
+	// Case 2: <n>.talaria.telekom-dev.perf.rdk.rdkf.io
+	reCase2 := regexp.MustCompile(`(\d+)\.talaria\.telekom-dev\.perf\.rdk\.rdkf\.io`)
+	if reCase2.MatchString(originalURL) {
+		return reCase2.ReplaceAllString(originalURL, "xmidt-talaria-$1.xmidt-talaria-headless.hgw-shared-perf.svc.cluster.local:6200")
+	}
+
+	// Return unchanged if no match
+	return originalURL
 }
