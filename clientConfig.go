@@ -155,7 +155,11 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 		return nil, "", err
 	}
 	var talariaInstance = ""
-	fmt.Printf("Creating connection for Device Name: ", config.DeviceName)
+	fmt.Println("Creating connection for Device Name: ", config.DeviceName)
+	parts := strings.Split(config.DeviceName, ":")
+	if len(parts) < 2 {
+		return nil, "", fmt.Errorf("invalid DeviceName %q: must be of form 'mac:xxxxxxxxxxxx'", config.DeviceName)
+	}
 	tlsConfig := GetTLSConfig(strings.Split(config.DeviceName, ":")[1], config.CertificatesPath, config.UseSSL)
 	if config.PetasosEnabled {
 		talariaInstance, err = getTalariaInstance(config, tlsConfig)
