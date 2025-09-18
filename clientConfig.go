@@ -125,6 +125,8 @@ func NewClient(config ClientConfig) (Client, error) {
 		done:            make(chan struct{}, 1),
 		logger:          logger,
 		pingConfig:      config.PingConfig,
+		config:          config,
+		pinged:          pinged,
 	}
 
 	newClient.registry, err = NewHandlerRegistry(config.Handlers)
@@ -156,10 +158,6 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 	}
 	var talariaInstance = ""
 	fmt.Println("Creating connection for Device Name: ", config.DeviceName)
-	parts := strings.Split(config.DeviceName, ":")
-	if len(parts) < 2 {
-		return nil, "", fmt.Errorf("invalid DeviceName %q: must be of form 'mac:xxxxxxxxxxxx'", config.DeviceName)
-	}
 	tlsConfig := GetTLSConfig(strings.Split(config.DeviceName, ":")[1], config.CertificatesPath, config.UseSSL)
 	if config.PetasosEnabled {
 		talariaInstance, err = getTalariaInstance(config, tlsConfig)
