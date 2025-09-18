@@ -155,6 +155,7 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 		return nil, "", err
 	}
 	var talariaInstance = ""
+	fmt.Printf("Creating connection for Device Name: ", config.DeviceName)
 	tlsConfig := GetTLSConfig(strings.Split(config.DeviceName, ":")[1], config.CertificatesPath, config.UseSSL)
 	if config.PetasosEnabled {
 		talariaInstance, err = getTalariaInstance(config, tlsConfig)
