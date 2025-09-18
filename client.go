@@ -117,78 +117,109 @@ func (c *client) Close() error {
 // 	}
 // }
 
-// going to be used to access the HandleMessage() function
+// read continually listens for messages arriving on the websocket
+// connection. If the connection closes or an error occurs, it attempts
+// to reconnect by calling attemptReconnect().
 func (c *client) read() {
-	defer c.wg.Done()
+	defer c.wg.Done() // mark this goroutine as done when we exit
 	c.logger.Info("Watching socket for messages.")
 
 	for {
 		select {
 		case <-c.done:
+			// The client is shutting down. Stop reading messages.
 			c.logger.Info("Stopped reading from socket.")
 			return
 		default:
+			// No stop signal yet; continue reading.
 			c.logger.Debug("Reading message...")
 		}
 
+		// Safely take a snapshot of the current websocket connection.
+		// We lock only long enough to read the pointer.
 		c.connMu.Lock()
 		conn := c.connection
 		c.connMu.Unlock()
+
+		// If the connection pointer is nil, we’ve lost the connection.
+		// Try to reconnect before attempting to read again.
 		if conn == nil {
 			c.logger.Warn("connection is nil, attempting reconnect")
 			c.attemptReconnect()
 			continue
 		}
 
+		// Block waiting for the next message from the server.
 		_, serverMessage, err := conn.ReadMessage()
 		if err != nil {
+			// An error means the socket has failed or closed.
+			// Log the failure and attempt to reconnect.
 			c.logger.Error("Failed to read message. Will attempt to reconnect.", zap.Error(err))
 			c.attemptReconnect()
 			continue
 		}
 
+		// Successfully received a message: pass it to the decoder,
+		// which will dispatch it to the appropriate handler.
 		c.decoderSender.DecodeAndSend(serverMessage)
 		c.logger.Debug("Message sent to be decoded")
 	}
 }
 
+// attemptReconnect keeps trying to establish a new websocket connection
+// if the current one is lost. It uses an exponential backoff so that
+// repeated failures do not overwhelm the remote server.
 func (c *client) attemptReconnect() {
-	backoff := time.Second
+	backoff := time.Second // start with a 1-second delay between attempts
 
 	for {
 		select {
 		case <-c.done:
+			// If the client is shutting down, stop trying to reconnect.
 			c.logger.Info("Stop requested; aborting reconnect attempts")
 			return
 		default:
+			// No shutdown signal; continue trying to reconnect.
 		}
 
 		c.logger.Info("Trying to reconnect websocket...")
 
-		// use stored client config and header info
+		// Recreate the websocket connection using the original headers
+		// and configuration stored in the client.
 		conn, wsURL, err := createConnection(c.headerInfo, c.config)
 		if err != nil {
+			// Connection attempt failed: log the error and wait before retrying.
 			c.logger.Info("reconnect attempt failed", zap.Error(err), zap.Duration("retryIn", backoff))
 			time.Sleep(backoff)
+
+			// Exponential backoff: double the wait time up to a maximum of 30 seconds.
 			if backoff < 30*time.Second {
 				backoff *= 2
 			}
 			continue
 		}
-		// reinstall ping handler to send into the same ping channel
+
+		// The websocket is successfully re-established.
+		// Re-install the ping handler so that keep-alive pings from the server
+		// will be answered and forwarded to the ping monitoring logic.
 		conn.SetPingHandler(func(appData string) error {
 			c.pinged <- appData
 			return conn.WriteControl(websocket.PongMessage, []byte(appData), time.Now().Add(writeWait))
 		})
 
+		// Safely swap the old connection for the new one.
 		c.connMu.Lock()
 		old := c.connection
 		c.connection = conn
 		c.connMu.Unlock()
+
+		// Close the old connection (if there was one) after the swap so that
+		// no other goroutine is still trying to read from it.
 		if old != nil {
 			_ = old.Close()
 		}
 
+		// Log the successful reconnection and exit the retry loop.
 		c.logger.Info("websocket reconnected", zap.String("url", wsURL))
 		return
 	}
