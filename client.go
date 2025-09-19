@@ -170,8 +170,9 @@ func (c *client) read() {
 // if the current one is lost. It uses an exponential backoff so that
 // repeated failures do not overwhelm the remote server.
 func (c *client) attemptReconnect() {
-	backoff := 180 * time.Second // start with a 180-second delay between attempts
+	time.Sleep(180 * time.Second) // start with a 180-second delay between attempts
 
+	backoff := 1 * time.Second
 	for {
 		select {
 		case <-c.done:
@@ -193,7 +194,7 @@ func (c *client) attemptReconnect() {
 			time.Sleep(backoff)
 
 			// Exponential backoff: double the wait time up to a maximum of 30 seconds.
-			if backoff < 5760*time.Second {
+			if backoff < 30*time.Second {
 				backoff *= 2
 			}
 			continue
