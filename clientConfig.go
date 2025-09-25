@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"net"
 	"net/http"
 	"regexp"
@@ -235,7 +236,7 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 }
 
 func getTalariaInstance(config ClientConfig, tlsConfig *tls.Config) (string, error) {
-	const maxRetries = 3
+	const maxRetries = 9
 	var (
 		result string
 		err    error
@@ -248,7 +249,16 @@ func getTalariaInstance(config ClientConfig, tlsConfig *tls.Config) (string, err
 		}
 
 		if attempt < maxRetries {
-			log.Printf("Attempt %d/%d failed: %v. Retrying...", attempt, maxRetries, err)
+			secs := int(math.Pow(2, float64(attempt+1))) - 1
+			backoff := time.Duration(secs) * time.Second
+
+			log.Printf("Failed to get Talaria instance from Petasos, will retry",
+				zap.Int("attempt", attempt),
+				zap.Duration("backoff", backoff),
+				zap.Error(err),
+			)
+
+			time.Sleep(backoff)
 		}
 	}
 
