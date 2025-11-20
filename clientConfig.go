@@ -430,11 +430,11 @@ func updatedURL(originalURL string) string {
 		return reCase1.ReplaceAllString(originalURL, "xmidt-talaria-$1.hgw-shared-perf.svc.cluster.local:6200")
 	}
 
-	// Case 2: <n>.talaria.telekom-dev.perf.rdk.rdkf.io
-	reCase2 := regexp.MustCompile(`(\d+)\.talaria\.telekom-dev\.perf\.rdk\.rdkf\.io`)
-	if reCase2.MatchString(originalURL) {
-		return reCase2.ReplaceAllString(originalURL, "xmidt-talaria-$1.xmidt-talaria-headless.hgw-shared-perf.svc.cluster.local:6200")
-	}
+	// // Case 2: <n>.talaria.telekom-dev.perf.rdk.rdkf.io
+	// reCase2 := regexp.MustCompile(`(\d+)\.talaria\.telekom-dev\.perf\.rdk\.rdkf\.io`)
+	// if reCase2.MatchString(originalURL) {
+	// 	return reCase2.ReplaceAllString(originalURL, "xmidt-talaria-$1.xmidt-talaria-headless.hgw-shared-perf.svc.cluster.local:6200")
+	// }
 
 	// Return unchanged if no match
 	return originalURL
