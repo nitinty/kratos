@@ -4,6 +4,8 @@ import (
 	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -182,8 +184,28 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 	headers.Add("X-Webpa-Model-Name", headerInfo.modelName)
 	headers.Add("X-Webpa-Manufacturer", headerInfo.manufacturer)
 	headers.Add("Authorization", "Bearer "+headerInfo.token)
-	headers.Add("X-WebPA-Convey", "eyJody1tb2RlbCI6IkRULUhHVzAxQS1BUkMiLCJody1zZXJpYWwtbnVtYmVyIjoiOTAxMDAwMDAwMDBWNDQ1MTExMTExIiwiaHctbWFudWZhY3R1cmVyIjoiQXJjYWR5YW4iLCJmdy1uYW1lIjoiMDA0LjAxMS4wNzMiLCJib290LXRpbWUiOjE3NTMwODIwNTEsIndlYnBhLXByb3RvY29sIjoiUEFST0RVUy0yLjAtNDkyYTg3OSIsIndlYnBhLWludGVyZmFjZS11c2VkIjoiZXJvdXRlcjAiLCJody1sYXN0LXJlYm9vdC1yZWFzb24iOiJmYWN0b3J5LXJlc2V0Iiwid2VicGEtbGFzdC1yZWNvbm5lY3QtcmVhc29uIjoiU1NMX1NvY2tldF9DbG9zZSIsIndlYnBhLWludGVyZmFjZS1sYWJlbCI6IkZpeGVkIiwid2FuLWlwdjQtYWRkcmVzcyI6IjE3Mi4xNi4yNTQuMyJ9")
+
+	//headers.Add("X-WebPA-Convey", "eyJody1tb2RlbCI6IkRULUhHVzAxQS1BUkMiLCJody1zZXJpYWwtbnVtYmVyIjoiOTAxMDAwMDAwMDBWNDQ1MTExMTExIiwiaHctbWFudWZhY3R1cmVyIjoiQXJjYWR5YW4iLCJmdy1uYW1lIjoiMDA0LjAxMS4wNzMiLCJib290LXRpbWUiOjE3NTMwODIwNTEsIndlYnBhLXByb3RvY29sIjoiUEFST0RVUy0yLjAtNDkyYTg3OSIsIndlYnBhLWludGVyZmFjZS11c2VkIjoiZXJvdXRlcjAiLCJody1sYXN0LXJlYm9vdC1yZWFzb24iOiJmYWN0b3J5LXJlc2V0Iiwid2VicGEtbGFzdC1yZWNvbm5lY3QtcmVhc29uIjoiU1NMX1NvY2tldF9DbG9zZSIsIndlYnBhLWludGVyZmFjZS1sYWJlbCI6IkZpeGVkIiwid2FuLWlwdjQtYWRkcmVzcyI6IjE3Mi4xNi4yNTQuMyJ9")
 	//headers.Add("Authorization", "Basic dXNlcjpwYXNz")
+
+	conveyData := map[string]interface{}{
+		"hw-model":                    "DT-HGW01A-ARC",
+		"hw-serial-number":            "90100000000V445111111",
+		"hw-manufacturer":             "Arcadyan",
+		"fw-name":                     "004.011.073",
+		"boot-time":                   time.Now().Unix(),
+		"webpa-protocol":              "PARODUS-2.0-492a879",
+		"webpa-interface-used":        "erouter0",
+		"hw-last-reboot-reason":       "factory-reset",
+		"webpa-last-reconnect-reason": "SSL_Socket_Close",
+		"webpa-interface-label":       "Fixed",
+		"wan-ipv4-address":            "172.16.254.3",
+	}
+	conveyJSON, err := json.Marshal(conveyData)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to marshal convey data: %w", err)
+	}
+	headers.Add("X-WebPA-Convey", base64.StdEncoding.EncodeToString(conveyJSON))
 
 	// Replace protocol
 	/*modified := strings.Replace(talariaInstance, "http://", "https://", 1)
