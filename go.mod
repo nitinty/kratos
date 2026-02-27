@@ -1,6 +1,8 @@
 module github.com/krshna-dtdl/kratos
 
-go 1.20
+go 1.21
+
+toolchain go1.24.2
 
 require (
 	github.com/goph/emperror v0.17.3-0.20190703203600-60a8d9faa17b
