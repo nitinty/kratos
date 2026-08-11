@@ -185,6 +185,21 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 	headers.Add("X-Webpa-Manufacturer", headerInfo.manufacturer)
 	headers.Add("Authorization", "Bearer "+headerInfo.token)
 
+	ip, err := generateIPFromID(headerInfo.deviceName)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to generate IP for X-Intermediate-Context: %w", err)
+	}
+	intermediateContext := map[string]string{
+		"ipAddress":              ip,
+		"certificateProviderRaw": "",
+		"certificateExpiryDate":  "",
+	}
+	intermediateContextJSON, err := json.Marshal(intermediateContext)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to marshal X-Intermediate-Context: %w", err)
+	}
+	headers.Add("X-Intermediate-Context", string(intermediateContextJSON))
+
 	//headers.Add("X-WebPA-Convey", "eyJody1tb2RlbCI6IkRULUhHVzAxQS1BUkMiLCJody1zZXJpYWwtbnVtYmVyIjoiOTAxMDAwMDAwMDBWNDQ1MTExMTExIiwiaHctbWFudWZhY3R1cmVyIjoiQXJjYWR5YW4iLCJmdy1uYW1lIjoiMDA0LjAxMS4wNzMiLCJib290LXRpbWUiOjE3NTMwODIwNTEsIndlYnBhLXByb3RvY29sIjoiUEFST0RVUy0yLjAtNDkyYTg3OSIsIndlYnBhLWludGVyZmFjZS11c2VkIjoiZXJvdXRlcjAiLCJody1sYXN0LXJlYm9vdC1yZWFzb24iOiJmYWN0b3J5LXJlc2V0Iiwid2VicGEtbGFzdC1yZWNvbm5lY3QtcmVhc29uIjoiU1NMX1NvY2tldF9DbG9zZSIsIndlYnBhLWludGVyZmFjZS1sYWJlbCI6IkZpeGVkIiwid2FuLWlwdjQtYWRkcmVzcyI6IjE3Mi4xNi4yNTQuMyJ9")
 	//headers.Add("Authorization", "Basic dXNlcjpwYXNz")
 
@@ -274,10 +289,8 @@ func getTalariaInstance(config ClientConfig, tlsConfig *tls.Config) (string, err
 			secs := int(math.Pow(2, float64(attempt+1))) - 1
 			backoff := time.Duration(secs) * time.Second
 
-			log.Printf("Failed to get Talaria instance from Petasos, will retry",
-				zap.Int("attempt", attempt),
-				zap.Duration("backoff", backoff),
-				zap.Error(err),
+			log.Printf("Failed to get Talaria instance from Petasos, will retry: attempt=%d backoff=%s err=%v",
+				attempt, backoff, err,
 			)
 
 			time.Sleep(backoff)
