@@ -1,0 +1,21 @@
+clientConfig_test.go
+  s_13979d849d394b::t_0f073c0cd7aa45 35-36,44-45
+clientConfig.go
+  s_13979d849d394b::t_cd913e22de4494 194-195
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "64c9931c999105a0779ec30f69d2a76936bb3665",
+  "prompts": {},
+  "sessions": {
+    "s_13979d849d394b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1f2bd759-5468-4f5f-ae02-bb6c4a999e53",
+        "model": "grok-4.5"
+      },
+      "human_author": "nitintyagi <nitin.tyagi@telekom-digital.com>"
+    }
+  }
+}
