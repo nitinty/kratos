@@ -1,0 +1,29 @@
+clientConfig.go
+  s_13979d849d394b::t_0a727b21cc07d2 188-192,196-201
+  s_13979d849d394b::t_c06b1d79ff4cc6 193-195
+  s_13979d849d394b::t_65e3cbe51f4366 292-293
+  s_13979d849d394b::t_ff3ea515cbb929 202
+clientConfig_test.go
+  s_13979d849d394b::t_fdcff03e9e0dfb 1-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "3f535649079d1645405963e1ee216992364950b8",
+  "prompts": {},
+  "humans": {
+    "h_fe2c0edf5e6368": {
+      "author": "nitintyagi <nitin.tyagi@telekom-digital.com>"
+    }
+  },
+  "sessions": {
+    "s_13979d849d394b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1f2bd759-5468-4f5f-ae02-bb6c4a999e53",
+        "model": "grok-4.5"
+      },
+      "human_author": "nitintyagi <nitin.tyagi@telekom-digital.com>"
+    }
+  }
+}
