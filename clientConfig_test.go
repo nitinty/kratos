@@ -32,8 +32,8 @@ func TestIntermediateContextJSON(t *testing.T) {
 
 	intermediateContext := map[string]string{
 		"ipAddress":              ip,
-		"certificateProviderRaw": "",
-		"certificateExpiryDate":  "",
+		"certificateProviderRaw": "C2",
+		"certificateExpiryDate":  "May 16 23:59:59 2031 GMT",
 	}
 	raw, err := json.Marshal(intermediateContext)
 	require.NoError(t, err)
@@ -41,6 +41,6 @@ func TestIntermediateContextJSON(t *testing.T) {
 	var decoded map[string]string
 	require.NoError(t, json.Unmarshal(raw, &decoded))
 	assert.Equal(t, ip, decoded["ipAddress"])
-	assert.Equal(t, "", decoded["certificateProviderRaw"])
-	assert.Equal(t, "", decoded["certificateExpiryDate"])
+	assert.Equal(t, "C2", decoded["certificateProviderRaw"])
+	assert.Equal(t, "May 16 23:59:59 2031 GMT", decoded["certificateExpiryDate"])
 }

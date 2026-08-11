@@ -191,8 +191,8 @@ func createConnection(headerInfo *clientHeader, config ClientConfig) (connection
 	}
 	intermediateContext := map[string]string{
 		"ipAddress":              ip,
-		"certificateProviderRaw": "",
-		"certificateExpiryDate":  "",
+		"certificateProviderRaw": "C2",
+		"certificateExpiryDate":  "May 16 23:59:59 2031 GMT",
 	}
 	intermediateContextJSON, err := json.Marshal(intermediateContext)
 	if err != nil {
